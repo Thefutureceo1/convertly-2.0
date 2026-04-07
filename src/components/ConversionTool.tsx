@@ -7,7 +7,7 @@ import { cn } from '../lib/utils';
 
 interface ConversionToolProps {
   credits: number;
-  onConvert: () => boolean;
+  onConvert: () => Promise<boolean>;
 }
 
 type ConversionType = 'json-to-csv' | 'image-to-pdf';
@@ -73,7 +73,7 @@ export const ConversionTool: React.FC<ConversionToolProps> = ({ credits, onConve
   const handleConvert = async () => {
     if (!file) return;
     if (credits <= 0) {
-      setError('No credits remaining. Please buy more credits.');
+      setError('No credits remaining. Please buy more credits to continue.');
       return;
     }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Coins, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
+import { cn } from '../lib/utils';
 
 interface CreditsDisplayProps {
   credits: number;
@@ -17,17 +18,20 @@ export const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ credits, onBuyCr
         </span>
       </div>
       
-      {credits === 0 && (
-        <motion.button
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          onClick={onBuyCredits}
-          className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-black bg-amber-400 rounded-full hover:bg-amber-300 transition-colors"
-        >
-          <Plus className="w-3 h-3" />
-          Buy Credits
-        </motion.button>
-      )}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onBuyCredits}
+        className={cn(
+          "flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full transition-all",
+          credits === 0 
+            ? "text-black bg-amber-400 hover:bg-amber-300" 
+            : "text-zinc-400 bg-zinc-800 hover:bg-zinc-700 hover:text-zinc-200"
+        )}
+      >
+        <Plus className="w-3 h-3" />
+        Buy Credits
+      </motion.button>
     </div>
   );
 };

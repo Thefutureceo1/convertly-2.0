@@ -3,19 +3,31 @@ import { useState } from 'react';
 import { Layout } from './components/Layout';
 import { ConversionTool } from './components/ConversionTool';
 import { CreditsDisplay } from './components/CreditsDisplay';
+import { PricingModal } from './components/PricingModal';
 import { useCredits } from './hooks/useCredits';
 import { motion } from 'motion/react';
 import { Sparkles, ArrowRight, ShieldAlert } from 'lucide-react';
 
 export default function App() {
-  const { credits, spendCredit, addCredits } = useCredits();
+  const { credits, spendCredit, addCredits, isLoading } = useCredits();
   const { isLoaded, isSignedIn } = useUser();
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
 
+  // Detect if a real Clerk key is provided (not the placeholder)
   const hasClerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY && 
-                     import.meta.env.VITE_CLERK_PUBLISHABLE_KEY !== "pk_test_placeholder";
+                     import.meta.env.VITE_CLERK_PUBLISHABLE_KEY !== "pk_test_placeholder" &&
+                     !import.meta.env.VITE_CLERK_PUBLISHABLE_KEY.includes("...");
 
   const showTool = isSignedIn || isDemoMode;
+
+  if (!isLoaded || (isSignedIn && isLoading)) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-zinc-800 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <Layout 
@@ -23,12 +35,22 @@ export default function App() {
         (showTool) && (
           <CreditsDisplay 
             credits={credits} 
-            onBuyCredits={() => addCredits(10)} 
+            onBuyCredits={() => setIsPricingOpen(true)} 
           />
         )
       }
     >
+      <PricingModal 
+        isOpen={isPricingOpen} 
+        onClose={() => setIsPricingOpen(false)} 
+        onBuy={(amount) => {
+          addCredits(amount);
+          setIsPricingOpen(false);
+        }}
+      />
+
       <div className="flex flex-col items-center text-center space-y-12">
+        {/* Only show warning if key is missing AND we aren't in demo mode */}
         {!hasClerkKey && !isDemoMode && (
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
@@ -109,12 +131,15 @@ export default function App() {
                   </button>
                 </SignInButton>
                 
-                <button 
-                  onClick={() => setIsDemoMode(true)}
-                  className="w-full sm:w-auto px-8 py-4 bg-zinc-800 text-zinc-300 font-semibold rounded-2xl hover:bg-zinc-700 transition-all"
-                >
-                  Try Demo Mode
-                </button>
+                {/* Only show Demo Mode if real auth isn't available */}
+                {!hasClerkKey && (
+                  <button 
+                    onClick={() => setIsDemoMode(true)}
+                    className="w-full sm:w-auto px-8 py-4 bg-zinc-800 text-zinc-300 font-semibold rounded-2xl hover:bg-zinc-700 transition-all"
+                  >
+                    Try Demo Mode
+                  </button>
+                )}
               </div>
               
               <div className="grid grid-cols-3 gap-8 pt-8 border-t border-zinc-800">
